@@ -13,7 +13,7 @@ namespace CoctailsDtataBaseTesting
         /// </summary>
         /// <param name="searchItem">ingredient search string</param>
 
-        [DataTestMethod, Description("The system shall include a method to search by ingredient name and return the following")]
+        [DataTestMethod, Description("Ingredient properties names verification")]
         [DataRow(validNonAlcoholicIngredientName)]
         [DataRow(validAlcoholicIngredientName)]
         public void TestNonAlcoholIngredientSchema(string searchItem)
@@ -37,8 +37,8 @@ namespace CoctailsDtataBaseTesting
             CollectionAssert.AreEquivalent(expectedFieldsNames, actualFieldsNames, "Unexpected Ingredient field name");
         }
 
-        [DataTestMethod, Description("The system shall include a method to search by ingredient name and return the following (Alcoholic ingredient)")]              
-        public void TestAlcoholIngredientFieldsTypes()
+        [TestMethod, Description("Alcoholic ingredient properties types verification. All properties should be strings")]              
+        public void TestAlcoholIngredientPropertiesTypes()
         {
             //Act
             var ingredient = Api.GetIngredientsByName(validAlcoholicIngredientName).First();      
@@ -48,11 +48,11 @@ namespace CoctailsDtataBaseTesting
 
             //Assert
             //Assuming all fields in Alcoholic ingredient are populated and are strings
-            actualValues.ForEach(val => Assert.IsTrue(val is string, "All ingredient's properties should be a string type"));           
+            actualValues.ForEach(val => Assert.IsInstanceOfType(val, typeof(string), "All ingredient's properties should be a string type"));           
         }
 
-        [DataTestMethod, Description("The system shall include a method to search by ingredient name and return the following")]
-        public void TestNonAlcoholIngredientFieldsTypes()
+        [TestMethod, Description("Non alcoholic ingredient properties types verification. (Alcohol value is 'No', strABV is null)")]
+        public void TestNonAlcoholIngredientPropertiesTypes()
         {
             //Arrange
             //A bit of question, in the task "If an ingredient is non-alcoholic, Alcohol is null and ABV is null" but if ingredient is non alcoholic, value is "No" (at least for the water)
@@ -64,15 +64,16 @@ namespace CoctailsDtataBaseTesting
             var ingredientDict = ingredient.GetType().GetProperties().ToDictionary(prop => prop.Name, prop => prop.GetValue(ingredient));
                      
             var ingredientValuesStrings = ingredientDict.Values.ToList().Where(val => val is not null).ToList();
-
-            // We assume that only strABV is null, so will check the lengh of string values list           
-            var abvNullValue = ingredient.strABV;
+                                 
+            var abvValue = ingredient.strABV;
 
             //Assert            
             Assert.AreEqual(expectedStrAlcoholValue, ingredient.strAlcohol, "strAlcohol value is not correct");
+
+            // We assume that only strABV is null, so will check the lengh of string values list  
             Assert.AreEqual(expectedStringValuesQuantity, ingredientValuesStrings.Count, "Only strAlcohol was expected to be Null");
-            Assert.IsNull(abvNullValue, "strABV should be Null for the non-alcoholic ingredient");
-            ingredientValuesStrings.ForEach(val => Assert.IsTrue(val is string, "Ingredient's properties should be a string type"));
+            Assert.IsNull(abvValue, "strABV should be Null for the non-alcoholic ingredient");
+            ingredientValuesStrings.ForEach(val => Assert.IsInstanceOfType(val, typeof(string), "Ingredient's properties should be a string type"));
         }
 
         [DataTestMethod, Description("Searching for an ingredient by name is case-insensitive (additional test)")]
@@ -82,11 +83,11 @@ namespace CoctailsDtataBaseTesting
         public void TestsSearchIngredientIsCaseInsensetive(string searchParameter)
         {
             //Act
-            var baseIngredient = Api.GetIngredientsByName(validAlcoholicIngredientName).Select(drink => drink.strIngredient.ToString()).ToList();
-            var testIngredient = Api.GetIngredientsByName(searchParameter).Select(ing => ing.strIngredient.ToString()).ToList();
+            var baseIngredientNames = Api.GetIngredientsByName(validAlcoholicIngredientName).Select(drink => drink.strIngredient.ToString()).ToList();
+            var testIngredientNames = Api.GetIngredientsByName(searchParameter).Select(ing => ing.strIngredient.ToString()).ToList();
 
             //Assert
-            CollectionAssert.AreEquivalent(baseIngredient, testIngredient, "Search is case sensetive or returned incorrect values");
+            CollectionAssert.AreEquivalent(baseIngredientNames, testIngredientNames, "Search is case sensetive or returned incorrect values");
         }
     }
 }

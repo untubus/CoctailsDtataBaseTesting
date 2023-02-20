@@ -14,6 +14,7 @@ namespace CoctailsDtataBaseTesting
             var coctailsNames = Api.GetDrinksByName(validCoctailName).Select(drink => drink.strDrink.ToString()).ToList();
 
             //Assert
+            // Search returns several coctails, making sure that each of the returned cotail contains search sting in the name
             coctailsNames.ForEach(name => StringAssert.Contains(name, validCoctailName, "Incorrect or no coctail name is found"));
         }
 
@@ -21,10 +22,10 @@ namespace CoctailsDtataBaseTesting
         public void TestInvalidCoctailSearchReturnsNull()
         {
             //Arrange
-            var inValidCoctailName = "ThereIsNoMargarita";
+            var invalidCoctailName = "ThereIsNoMargarita";
 
             //Act
-            var drinks = Api.GetDrinksByName(inValidCoctailName);
+            var drinks = Api.GetDrinksByName(invalidCoctailName);
 
             //Assert
             Assert.IsNull(drinks, "Null was expected as search result, but no success");
@@ -51,11 +52,12 @@ namespace CoctailsDtataBaseTesting
         }
 
         /// <summary>
-        /// Pretty ugly test, becasue we have predefined object for Json deserealization with
-        /// all types and names, but here I'm showing that I know about dictionaries :D
+        /// Pretty ugly test, becasue we have predefined object for Json deserealization with all types and names. 
+        /// Couple of verifications are here, more-less acceptablle for high level test, but if it was unit test, should be split for several tests with 1 assert each 
+        /// but here I'm showing that I know about dictionaries :D
         /// </summary>
-        [TestMethod, Description("API response must contain the following Schema properties")]
-        public void TestResponceShoudContainSchemaProperties()            
+        [TestMethod, Description("API response must contain the following Schema properties: root 'drinks' is array, each drink's property is nullable string")]
+        public void TestResponseShoudContainSchemaProperties()            
         {
             //Arrange
             var expectedPropertiesNames = new List<string>
@@ -91,10 +93,10 @@ namespace CoctailsDtataBaseTesting
             var nullValues = coctailProperties.Values.ToList().Where(val => val is null).ToList();
             var nonNullValues = coctailProperties.Values.ToList().Where(val => val is not null).ToList();
 
-            //Assert            
-            Assert.IsTrue(drinks is Coctail[], "Drinks is expected to be and array");
+            //Assert                        
+            Assert.IsInstanceOfType(drinks, typeof(Coctail[]), "Drinks is expected to be and array");
             CollectionAssert.AreEquivalent(expectedPropertiesNames, actualPropertiesNames, "Unexpected drink's property name");
-            nonNullValues.ForEach(value => Assert.IsTrue(value is string, "Drink's properties should be a string or Null type"));
+            nonNullValues.ForEach(value => Assert.IsInstanceOfType(value,  typeof(string), "Drink's properties should be a string or Null type"));
             nullValues.ForEach(value => Assert.IsNull(value, "Drink's properties should be a string or Null type"));
         }
 
